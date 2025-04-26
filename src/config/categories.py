@@ -1,7 +1,7 @@
 # Categorías disponibles en la base de datos
 
 # Testing
-TESTING_CATEGORIES = {
+CATEGORIESS = {
     "Finanzas": "1750780a-88e0-413a-9656-9c615be2aca8",
     "Industria": "1bd61ab6-367d-4fdb-b9fc-de608d1d30e6",
     "Recursos Humanos": "1d11262e-281b-465a-a152-514b92463ea7",

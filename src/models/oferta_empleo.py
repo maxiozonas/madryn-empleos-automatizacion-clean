@@ -21,13 +21,14 @@ def map_to_oferta_empleo(job: Dict) -> Dict:
     # Convertir la descripción de texto plano a HTML para el editor TipTap
     descripcion = text_to_html(job.get("description", "Sin descripción"))
     
+    # Asegurarse de que fechaCierre sea explícitamente None para que el backend no aplique una fecha por defecto
     return {
         "titulo": job.get("title", "Sin título")[:150],
         "descripcion": descripcion,
         "usuario": {"id": USER_ID},
         "empresaConsultora": job.get("company_name", "Desconocida")[:150],
         "fechaPublicacion": datetime.now().isoformat(),
-        "fechaCierre": (datetime.now() + timedelta(days=30)).isoformat(),
+        "fechaCierre": None,  # Explícitamente None para que el backend no aplique fecha por defecto
         "formaPostulacion": forma_postulacion,
         "emailContacto": email_contacto,
         "linkPostulacion": link_postulacion,
