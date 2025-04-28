@@ -59,14 +59,14 @@ def main(test_mode: bool = False, test_5min: bool = False, test_force: bool = Fa
 
         # Reiniciar al cambiar de día
         if last_date != today:
-            logger.info(f"Nuevo día detectado: {today}. Reiniciando contadores.")
+            logger.info(f"[SISTEMA] Nuevo día detectado: {today}. Reiniciando contadores.")
             last_date = today
             last_scheduled_time = None
             existing_offers = fetch_existing_offers()
             offers_today = 0
             last_log_time = None
             last_log_message = None
-            logger.info(f"Ofertas existentes en la base de datos: {len(existing_offers)}")
+            logger.info(f"[SISTEMA] Ofertas existentes en la base de datos: {len(existing_offers)}")
             save_state(last_date, offers_today, last_scheduled_time)
         else:
             offers_today = sum(1 for offer in existing_offers if datetime.fromisoformat(offer["fechaPublicacion"]).astimezone(ARGENTINA_TZ).date() == today)
@@ -76,20 +76,20 @@ def main(test_mode: bool = False, test_5min: bool = False, test_force: bool = Fa
 
         # Modo de prueba: forzar 5 publicaciones inmediatas
         if test_force:
-            logger.info("Modo de prueba activado: forzando 5 publicaciones inmediatas.")
+            logger.info("[MODO PRUEBA] Forzando 5 publicaciones inmediatas")
             offers_created = create_offer(existing_offers, desired_offers=DESIRED_OFFERS_PER_DAY)
-            logger.info(f"Se publicaron {offers_created}/{DESIRED_OFFERS_PER_DAY} ofertas.")
+            logger.info(f"[RESUMEN] Se publicaron {offers_created}/{DESIRED_OFFERS_PER_DAY} ofertas")
             save_state(last_date, offers_today + offers_created, last_scheduled_time)
             break
 
         # Modo de prueba: 5 ofertas en 5 minutos
         if test_5min:
-            logger.info("Modo de prueba activado: publicando 5 ofertas en 5 minutos.")
+            logger.info("[MODO PRUEBA] 5 ofertas en 5 minutos")
             for i in range(DESIRED_OFFERS_PER_DAY):
                 if offers_today >= DESIRED_OFFERS_PER_DAY:
                     logger.info("Se alcanzaron las 5 ofertas. Finalizando modo de prueba.")
                     break
-                logger.info(f"Publicando oferta {i+1}/{DESIRED_OFFERS_PER_DAY}")
+                logger.info(f"[MODO PRUEBA] Publicando oferta {i+1}/{DESIRED_OFFERS_PER_DAY}")
                 offers_created = create_offer(existing_offers)
                 offers_today += offers_created
                 save_state(last_date, offers_today, last_scheduled_time)
@@ -99,9 +99,9 @@ def main(test_mode: bool = False, test_5min: bool = False, test_force: bool = Fa
 
         # Modo de prueba: publicación inmediata (una oferta)
         if test_mode:
-            logger.info("Modo de prueba activado: ignorando restricciones de horario.")
+            logger.info("[MODO PRUEBA] Ignorando restricciones de horario")
             offers_created = create_offer(existing_offers)
-            logger.info(f"Se publicó {offers_created} oferta.")
+            logger.info(f"[RESUMEN] Se publicó {offers_created} oferta")
             save_state(last_date, offers_today + offers_created, last_scheduled_time)
             break
 
@@ -113,19 +113,19 @@ def main(test_mode: bool = False, test_5min: bool = False, test_force: bool = Fa
                 if seconds_to_next_start < 0:
                     next_start += timedelta(days=1)
                     seconds_to_next_start = (next_start - now).total_seconds()
-                logger.info(f"Se crearon todas las ofertas del día ({offers_today}). Pausando hasta {next_start.strftime('%H:%M')} del aquellos días que no sean festivos o fines de semana.")
+                logger.info(f"[SISTEMA] Completadas todas las ofertas del día ({offers_today}). Pausando hasta {next_start.strftime('%H:%M')}")
                 last_log_message = "offers_complete"
                 last_log_time = now
                 time_module.sleep(seconds_to_next_start)
                 continue
         elif current_total_minutes < start_total_minutes:
             if last_log_time is None or (now - last_log_time).total_seconds() >= 3600:
-                logger.info(f"Hora actual ({now.hour}:{now.minute:02d}) antes del inicio de publicación ({START_HOUR}:{START_MINUTE:02d}).")
+                logger.info(f"[HORARIO] Esperando hora de inicio ({START_HOUR}:{START_MINUTE:02d})")
                 last_log_time = now
                 last_log_message = "before_start"
         elif current_total_minutes >= end_total_minutes:
             if last_log_time is None or (now - last_log_time).total_seconds() >= 3600:
-                logger.info(f"Hora actual ({now.hour}:{now.minute:02d}) después del fin de publicación ({END_HOUR}:{END_MINUTE:02d}).")
+                logger.info(f"[PROGRAMACION] Fuera de horario de publicación (límite: {END_HOUR}:{END_MINUTE:02d})")
                 last_log_time = now
                 last_log_message = "after_end"
         else:
@@ -136,7 +136,7 @@ def main(test_mode: bool = False, test_5min: bool = False, test_force: bool = Fa
                     if offers_created > 0:
                         offers_today += offers_created
                         last_scheduled_time = next_scheduled_time
-                        logger.info(f"Ofertas creadas hoy: {offers_today}/{DESIRED_OFFERS_PER_DAY}")
+                        logger.info(f"[PROGRESO] Ofertas creadas hoy: {offers_today}/{DESIRED_OFFERS_PER_DAY}")
                         last_log_time = now
                         last_log_message = "offer_created"
                         save_state(last_date, offers_today, last_scheduled_time)
@@ -152,15 +152,15 @@ def run_with_restart():
 
     while attempt <= max_attempts:
         try:
-            logger.info(f"Iniciando ejecución del script (intento {attempt}/{max_attempts})")
+            logger.info(f"[SISTEMA] Iniciando ejecución (intento {attempt}/{max_attempts})")
             main(test_mode="--test" in sys.argv, test_5min="--test-5min" in sys.argv, test_force="--test-force" in sys.argv)
-            logger.info("Ejecución completada exitosamente")
+            logger.info("[SISTEMA] Ejecución completada exitosamente")
             break
         except Exception as e:
-            logger.error(f"Error fatal en la ejecución: {e}. Reintentando en {retry_delay} segundos...")
+            logger.error(f"[ERROR] Error fatal: {e}. Reintentando en {retry_delay} segundos...")
             attempt += 1
             if attempt > max_attempts:
-                logger.error(f"Se alcanzaron los {max_attempts} intentos. Deteniendo el script.")
+                logger.error(f"[ERROR] Se alcanzaron los {max_attempts} intentos. Deteniendo el script.")
                 break
             time_module.sleep(retry_delay)
 

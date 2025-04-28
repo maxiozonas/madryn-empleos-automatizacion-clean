@@ -42,7 +42,7 @@ def should_create_offer(now: datetime, last_offer_time: Optional[datetime], offe
 
     next_scheduled_time = get_next_scheduled_time(now, offers_today)
     if not next_scheduled_time:
-        logger.info("No hay más horarios programados para hoy.")
+        logger.info("[PROGRAMACION] No hay más horarios programados para hoy")
         return False
 
     if last_scheduled_time == next_scheduled_time:
@@ -50,7 +50,7 @@ def should_create_offer(now: datetime, last_offer_time: Optional[datetime], offe
 
     time_diff = (next_scheduled_time - now).total_seconds() / 60
     if -1 <= time_diff <= 1:
-        logger.info(f"Creando oferta en el horario programado: {next_scheduled_time}")
+        logger.info(f"[PROGRAMACION] Ejecutando publicación programada: {next_scheduled_time.strftime('%H:%M:%S')}")
         return True
 
     return False

@@ -1,7 +1,7 @@
 # Categorías disponibles en la base de datos
 
 # Testing
-CATEGORIESS = {
+CATEGORIES = {
     "Finanzas": "1750780a-88e0-413a-9656-9c615be2aca8",
     "Industria": "1bd61ab6-367d-4fdb-b9fc-de608d1d30e6",
     "Recursos Humanos": "1d11262e-281b-465a-a152-514b92463ea7",
@@ -29,7 +29,7 @@ CATEGORIESS = {
 }
 
 # Production
-CATEGORIES = {
+CATEGORIESS = {
     "Finanzas": "c760a6a9-c0e5-4ccb-9a19-848d43a06cda",
     "Industria": "7696d396-90dc-478b-a486-a09019acf1ce",
     "Recursos Humanos": "8d178f7c-0e2c-4693-88bf-46a1ed14605f",

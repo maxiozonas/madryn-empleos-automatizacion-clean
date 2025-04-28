@@ -12,14 +12,22 @@ def map_to_oferta_empleo(job: Dict) -> Dict:
     if apply_options and len(apply_options) > 0:
         forma_postulacion = "LINK"
         link_postulacion = apply_options[0].get("link")
+        if link_postulacion and len(link_postulacion) > 250:
+            link_postulacion = link_postulacion[:250]  # Limitar a 250 caracteres para dejar margen
         email_contacto = None
     else:
         forma_postulacion = "LINK" if any(platform in via for platform in known_platforms) else "MAIL"
         email_contacto = EMAIL_DEFAULT if forma_postulacion == "MAIL" else None
-        link_postulacion = generate_link_postulacion(job) if forma_postulacion == "LINK" else None
+        if forma_postulacion == "LINK":
+            link_postulacion = generate_link_postulacion(job)
+            if link_postulacion and len(link_postulacion) > 250:
+                link_postulacion = link_postulacion[:250]  # Limitar a 250 caracteres
+        else:
+            link_postulacion = None
 
     # Convertir la descripción de texto plano a HTML para el editor TipTap
     descripcion = text_to_html(job.get("description", "Sin descripción"))
+    
     
     # Asegurarse de que fechaCierre sea explícitamente None para que el backend no aplique una fecha por defecto
     return {
